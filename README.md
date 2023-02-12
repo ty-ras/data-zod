@@ -8,3 +8,4 @@ The protocol specification is checked both at compile-time and run-time to verif
 This all is done in such way that it does not make development tedious or boring, but instead robust and fun!
 
 This particular repository contains related libraries related to using TyRAS with [`Zod`](https://github.com/colinhacks/zod) data validation library:
+- [data](./data) folder contains `Zod`-specific library `@ty-ras/data-zod` commonly used by both frontend and backend,
