@@ -47,8 +47,7 @@ const transformToJSONSchemaImpl = (
         (validation as t.ZodUnion<[t.ZodTypeAny]>).options,
       );
     } else {
-      // TODO figure out if this type conversion is really ok
-      retVal = z2j.zodToJsonSchema(validation) as unknown as common.JSONSchema;
+      retVal = transformUsingZod2JsonSchema(validation);
     }
     if (retVal && typeof retVal !== "boolean" && !retVal.description) {
       const desc = validation.description;
@@ -66,7 +65,9 @@ const tryTransformTopLevelSchema = (
   recursion: Recursion,
   components: ReadonlyArray<t.ZodType>,
 ) => {
-  const nonUndefineds = components.filter(getUndefinedPossibility);
+  const nonUndefineds = components.filter(
+    (c) => getUndefinedPossibility(c) !== true,
+  );
   return nonUndefineds.length !== components.length
     ? // This is top-level optional schema -> just transform the underlying non-undefineds
       nonUndefineds.length === 1
@@ -96,5 +97,33 @@ const tryGetCommonTypeName = <TName extends "anyOf" | "allOf">(
   if (types.length === 1 && types[0] !== undefined) {
     retVal.type = types[0];
   }
+  return retVal;
+};
+
+const transformUsingZod2JsonSchema = (
+  validation: types.AnyEncoder | types.AnyDecoder,
+) => {
+  let retVal: common.JSONSchema | undefined;
+  if (validation instanceof t.ZodUndefined) {
+    // The zod-to-json-schema transforms undefineds as { "not": {} }.
+    // However, we want undefineds to be nulls, since eventually everything gets serialized.
+    retVal = {
+      type: "null",
+    };
+  } else if (validation instanceof t.ZodAny) {
+    // The zod-to-json-schema transforms anys as { "not": {} }.
+    // However, we want just true instead
+    retVal = true;
+  } else {
+    // TODO figure out if this type conversion is really ok
+    retVal = z2j.zodToJsonSchema(validation) as unknown as common.JSONSchema;
+    if (retVal && typeof retVal !== "boolean") {
+      delete retVal["$schema"];
+      if (Object.keys(retVal).length === 0) {
+        retVal = undefined;
+      }
+    }
+  }
+
   return retVal;
 };

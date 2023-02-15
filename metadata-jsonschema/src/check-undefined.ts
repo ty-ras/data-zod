@@ -8,7 +8,9 @@ const getUndefinedPossibility: common.GetUndefinedPossibility<
   let retVal: boolean | undefined = validation instanceof t.ZodUndefined;
   if (!retVal) {
     if (validation instanceof t.ZodEffects) {
-      retVal = getUndefinedPossibility(validation);
+      retVal = getUndefinedPossibility(
+        (validation as t.ZodEffects<t.ZodType>).innerType(),
+      );
     } else if (validation instanceof t.ZodType) {
       retVal = validation.safeParse(undefined).success ? undefined : false;
     }

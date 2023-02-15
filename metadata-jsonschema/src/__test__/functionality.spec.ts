@@ -1,8 +1,9 @@
 import test, { ExecutionContext } from "ava";
+import * as md from "@ty-ras/metadata-jsonschema";
+import * as t from "zod";
+import * as common from "./common";
 import * as spec from "../functionality";
 import type * as types from "../types";
-import * as common from "@ty-ras/metadata-jsonschema";
-import * as t from "zod";
 
 test("Validate createJsonSchemaFunctionality works for non-schema-transformation things", (c) => {
   c.plan(5);
@@ -14,10 +15,10 @@ test("Validate createJsonSchemaFunctionality works for non-schema-transformation
 
   c.deepEqual(getUndefinedPossibility(t.undefined()), true);
   c.deepEqual(
-    getUndefinedPossibility(t.union([t.string(), t.undefined()])),
+    getUndefinedPossibility(t.union([common.stringValidator, t.undefined()])),
     undefined,
   );
-  c.deepEqual(getUndefinedPossibility(t.string()), false);
+  c.deepEqual(getUndefinedPossibility(common.stringValidator), false);
 
   c.deepEqual(Object.keys(decoders), contentTypes);
   c.deepEqual(Object.keys(encoders), contentTypes);
@@ -25,8 +26,8 @@ test("Validate createJsonSchemaFunctionality works for non-schema-transformation
 
 const testDecodersAndEncoders = (
   c: ExecutionContext,
-  override: common.JSONSchema | undefined,
-  fallbackValue: common.JSONSchema | undefined,
+  override: md.JSONSchema | undefined,
+  fallbackValue: md.JSONSchema | undefined,
 ) => {
   let plan = 8;
   if (override !== undefined) {
@@ -56,7 +57,7 @@ const testDecodersAndEncoders = (
         : undefined,
   });
 
-  const stringInput = t.string();
+  const stringInput = common.stringValidator;
   const expectedString = override ?? stringSchema;
   c.deepEqual(stringDecoder(stringInput, true), expectedString);
   c.deepEqual(stringEncoder(stringInput, true), expectedString);
@@ -77,7 +78,7 @@ const testDecodersAndEncoders = (
   seenOverrideArgs.length = 0;
   const unknownInput = t.unknown();
   const expectedUnknown =
-    override ?? fallbackValue ?? common.getDefaultFallbackValue();
+    override ?? fallbackValue ?? md.getDefaultFallbackValue();
   c.deepEqual(stringDecoder(unknownInput, true), expectedUnknown);
   c.deepEqual(stringEncoder(unknownInput, true), expectedUnknown);
   c.deepEqual(decoder(unknownInput, true), expectedUnknown);
@@ -128,7 +129,7 @@ test(
 const contentType = "application/json" as const;
 const contentTypes = [contentType];
 
-const stringSchema: common.JSONSchema = {
+const stringSchema: md.JSONSchema = {
   type: "string",
   description: "string",
 };

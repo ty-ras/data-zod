@@ -1,20 +1,26 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 import test, { ExecutionContext } from "ava";
+import type * as md from "@ty-ras/metadata-jsonschema";
+import * as t from "zod";
+import * as common from "./common";
 import * as spec from "../transform";
 import type * as types from "../types";
-import type * as common from "@ty-ras/metadata-jsonschema";
-import * as t from "zod";
 
 test("Validate transformToJSONSchema basic usages work", (c) => {
   c.plan(9);
-  simpleTransformToJSONSchema(c, t.null(), "null");
-  simpleTransformToJSONSchema(c, t.undefined(), "null", "undefined");
+  simpleTransformToJSONSchema(c, t.null().describe("null"), "null");
+  simpleTransformToJSONSchema(c, common.undefined, "null", "undefined");
   simpleTransformToJSONSchema(c, t.void(), "null", "void");
-  simpleTransformToJSONSchema(c, t.string(), "string");
+  simpleTransformToJSONSchema(c, common.stringValidator, "string");
   simpleTransformToJSONSchema(c, t.boolean(), "boolean");
-  simpleTransformToJSONSchema(c, t.number(), "number");
-  simpleTransformToJSONSchema(c, t.array(t.unknown()), "array", "UnknownArray");
+  simpleTransformToJSONSchema(c, common.number, "number");
+  simpleTransformToJSONSchema(
+    c,
+    t.array(t.unknown()).describe("UnknownArray"),
+    "array",
+    "UnknownArray",
+  );
   simpleTransformToJSONSchema(
     c,
     t.record(t.unknown()),
@@ -25,17 +31,17 @@ test("Validate transformToJSONSchema basic usages work", (c) => {
 
 test("Validate transformToJSONSchema complex non-hierarchical usages work", (c) => {
   c.plan(7);
-  c.deepEqual(rawTransformToJSONSchema(t.literal("literal")), {
+  c.deepEqual(rawTransformToJSONSchema(common.literal("literal")), {
     type: "string",
     const: "literal",
     description: '"literal"',
   });
-  c.deepEqual(rawTransformToJSONSchema(t.literal(true)), {
+  c.deepEqual(rawTransformToJSONSchema(common.literal(true)), {
     type: "boolean",
     const: true,
     description: "true",
   });
-  c.deepEqual(rawTransformToJSONSchema(t.literal("literal")), {
+  c.deepEqual(rawTransformToJSONSchema(common.literal("literal")), {
     type: "string",
     const: "literal",
     description: '"literal"',
@@ -43,7 +49,10 @@ test("Validate transformToJSONSchema complex non-hierarchical usages work", (c) 
   c.deepEqual(rawTransformToJSONSchema(t.never()), false);
   c.deepEqual(
     rawTransformToJSONSchema(
-      t.union([t.literal("literal"), t.literal("anotherLiteral")]),
+      common.union([
+        common.literal("literal"),
+        common.literal("anotherLiteral"),
+      ]),
     ),
     {
       type: "string",
@@ -64,19 +73,21 @@ test("Validate transformToJSONSchema simple hierarchical usages work", (c) => {
       .refine(() => true),
     "string",
   );
-  const expectedArray: common.JSONSchema = {
+  const expectedArray: md.JSONSchema = {
     type: "array",
     items: {
       type: "string",
       description: "string",
     },
   };
-  c.deepEqual(rawTransformToJSONSchema(t.array(t.string())), {
+  c.deepEqual(rawTransformToJSONSchema(common.array(common.stringValidator)), {
     ...expectedArray,
     description: "Array<string>",
   });
   c.deepEqual(
-    rawTransformToJSONSchema(t.union([t.literal("one"), t.literal("two")])),
+    rawTransformToJSONSchema(
+      common.union([common.literal("one"), common.literal("two")]),
+    ),
     {
       type: "string",
       enum: ["one", "two"],
@@ -87,7 +98,7 @@ test("Validate transformToJSONSchema simple hierarchical usages work", (c) => {
 
 test("Validate transformToJSONSchema record types work", (c) => {
   c.plan(4);
-  const expectedObject: common.JSONSchema = {
+  const expectedObject: md.JSONSchema = {
     type: "object",
     properties: {
       property: {
@@ -100,7 +111,7 @@ test("Validate transformToJSONSchema record types work", (c) => {
   c.deepEqual(
     rawTransformToJSONSchema(
       t.object({
-        property: t.string(),
+        property: common.stringValidator,
       }),
     ),
     {
@@ -111,7 +122,7 @@ test("Validate transformToJSONSchema record types work", (c) => {
   c.deepEqual(
     rawTransformToJSONSchema(
       t.object({
-        property: t.string().optional(),
+        property: common.stringValidator.optional(),
       }),
     ),
     {
@@ -119,22 +130,25 @@ test("Validate transformToJSONSchema record types work", (c) => {
       description: `Partial<${expectedObject.description}>`,
     },
   );
-  c.deepEqual(rawTransformToJSONSchema(t.record(t.string(), t.number())), {
-    type: "object",
-    propertyNames: {
-      type: "string",
-      description: "string",
+  c.deepEqual(
+    rawTransformToJSONSchema(t.record(common.stringValidator, common.number)),
+    {
+      type: "object",
+      propertyNames: {
+        type: "string",
+        description: "string",
+      },
+      additionalProperties: {
+        type: "number",
+        description: "number",
+      },
+      description: "{ [K in string]: number }",
     },
-    additionalProperties: {
-      type: "number",
-      description: "number",
-    },
-    description: "{ [K in string]: number }",
-  });
+  );
   c.deepEqual(
     rawTransformToJSONSchema(
       t.strictObject({
-        property: t.string(),
+        property: common.stringValidator,
       }),
     ),
     {
@@ -149,7 +163,7 @@ test("Validate transformToJSONSchema record types work", (c) => {
 test("Validate transformToJSONSchema complex hierarchical usages work", (c) => {
   c.plan(6);
   // Union
-  const stringAndNumber: Array<common.JSONSchema> = [
+  const stringAndNumber: Array<md.JSONSchema> = [
     {
       type: "string",
       description: "string",
@@ -160,19 +174,26 @@ test("Validate transformToJSONSchema complex hierarchical usages work", (c) => {
     },
   ];
   c.deepEqual(
-    rawTransformToJSONSchema(t.union([t.string(), t.undefined()])),
-    // Top level `| undefined` type gets cut out, as it is handled specially in OpenAPI plugin
-    stringAndNumber[0],
-  );
-  c.deepEqual(
     rawTransformToJSONSchema(
-      t.union([t.string(), t.undefined().refine(() => true)]),
+      common.union([common.stringValidator, common.undefined]),
     ),
     // Top level `| undefined` type gets cut out, as it is handled specially in OpenAPI plugin
     stringAndNumber[0],
   );
   c.deepEqual(
-    rawTransformToJSONSchema(t.union([t.string(), t.number(), t.undefined()])),
+    rawTransformToJSONSchema(
+      common.union([
+        common.stringValidator,
+        common.undefined.refine(() => true),
+      ]),
+    ),
+    // Top level `| undefined` type gets cut out, as it is handled specially in OpenAPI plugin
+    stringAndNumber[0],
+  );
+  c.deepEqual(
+    rawTransformToJSONSchema(
+      common.union([common.stringValidator, common.number, common.undefined]),
+    ),
     {
       // Same thing happens here as above
       anyOf: stringAndNumber,
@@ -180,15 +201,22 @@ test("Validate transformToJSONSchema complex hierarchical usages work", (c) => {
       description: "(string | number | undefined)",
     },
   );
-  c.deepEqual(rawTransformToJSONSchema(t.union([t.string(), t.number()])), {
-    // No undefined present -> both types must be present
-    anyOf: stringAndNumber,
-    description: "(string | number)",
-  });
+  c.deepEqual(
+    rawTransformToJSONSchema(
+      common.union([common.stringValidator, common.number]),
+    ),
+    {
+      // No undefined present -> both types must be present
+      anyOf: stringAndNumber,
+      description: "(string | number)",
+    },
+  );
 
   // Intersection
   c.deepEqual(
-    rawTransformToJSONSchema(t.intersection(t.string(), t.number())),
+    rawTransformToJSONSchema(
+      t.intersection(common.stringValidator, common.number),
+    ),
     {
       allOf: stringAndNumber,
       description: "(string & number)",
@@ -196,17 +224,22 @@ test("Validate transformToJSONSchema complex hierarchical usages work", (c) => {
   );
 
   // Tuple
-  c.deepEqual(rawTransformToJSONSchema(t.tuple([t.string(), t.number()])), {
-    type: "array",
-    minItems: 2,
-    maxItems: 2,
-    items: stringAndNumber,
-    description: "[string, number]",
-  });
+  c.deepEqual(
+    rawTransformToJSONSchema(t.tuple([common.stringValidator, common.number])),
+    {
+      type: "array",
+      minItems: 2,
+      maxItems: 2,
+      items: stringAndNumber,
+      description: "[string, number]",
+    },
+  );
 
   // Heterogenous literal unions
   c.deepEqual(
-    rawTransformToJSONSchema(t.union([t.literal("literal"), t.literal(1)])),
+    rawTransformToJSONSchema(
+      common.union([common.literal("literal"), common.literal(1)]),
+    ),
     {
       enum: ["literal", 1],
       description: '("literal" | 1)',
@@ -216,17 +249,17 @@ test("Validate transformToJSONSchema complex hierarchical usages work", (c) => {
 
 test("Validate that transformToJSONSchema works with override and/or fallback callbacks", (c) => {
   c.plan(3);
-  const overrideValue: common.JSONSchema = true;
+  const overrideValue: md.JSONSchema = true;
   c.deepEqual(
     spec.transformToJSONSchema(
-      t.string(),
+      common.stringValidator,
       true,
       () => overrideValue,
       () => undefined,
     ),
     overrideValue,
   );
-  const fallbackValue: common.JSONSchema = false;
+  const fallbackValue: md.JSONSchema = false;
   c.deepEqual(
     spec.transformToJSONSchema(
       t.unknown(),
@@ -238,7 +271,7 @@ test("Validate that transformToJSONSchema works with override and/or fallback ca
   );
   c.deepEqual(
     spec.transformToJSONSchema(
-      t.string(),
+      common.stringValidator,
       true,
       () => overrideValue,
       fallbackValue,
@@ -251,7 +284,10 @@ test("Validate that transformToJSONSchema works with union of unions", (c) => {
   c.plan(1);
   c.deepEqual(
     rawTransformToJSONSchema(
-      t.union([t.string(), t.union([t.number(), t.boolean()])]),
+      common.union([
+        common.stringValidator,
+        common.union([common.number, t.boolean()]),
+      ]),
     ),
     {
       // Nested unions are flattened
@@ -277,7 +313,7 @@ test("Validate that transformToJSONSchema works with union of unions", (c) => {
 const simpleTransformToJSONSchema = (
   c: ExecutionContext,
   validation: types.AnyDecoder | types.AnyEncoder,
-  type: Exclude<common.JSONSchema, boolean>["type"],
+  type: Exclude<md.JSONSchema, boolean>["type"],
   description?: string,
 ) =>
   c.deepEqual(rawTransformToJSONSchema(validation), {
