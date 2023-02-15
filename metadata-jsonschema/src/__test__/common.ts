@@ -23,3 +23,15 @@ export const union = <
   t
     .union(components)
     .describe(`(${components.map((c) => c.description).join(" | ")})`);
+
+export const object = <T extends t.ZodRawShape>(shape: T) =>
+  t.object(shape).describe(
+    `{ ${Object.entries(shape)
+      .map(
+        ([propertyName, propertySchema]) =>
+          `${propertyName}${propertySchema.isOptional() ? "?" : ""}: ${
+            propertySchema.description
+          }`,
+      )
+      .join(", ")} }`,
+  );
