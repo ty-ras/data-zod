@@ -295,6 +295,20 @@ test("Validate that transformToJSONSchema works with override and/or fallback ca
   );
 });
 
+test("Validate that transformToJSONSchema works with invalid inputs", (c) => {
+  c.plan(1);
+  c.deepEqual(
+    spec.transformToJSONSchema(
+      undefined as any,
+      true,
+      undefined,
+      "hello" as any,
+      undefined,
+    ),
+    "hello",
+  );
+});
+
 // test("Validate that transformToJSONSchema works with union of unions", (c) => {
 //   c.plan(1);
 //   c.deepEqual(

@@ -27,17 +27,18 @@ test("Validate createJsonSchemaFunctionality works for non-schema-transformation
 const testDecodersAndEncoders = (
   c: ExecutionContext,
   override: md.JSONSchema | undefined,
-  // fallbackValue: md.JSONSchema | undefined,
+  fallbackValue: md.JSONSchema | undefined,
 ) => {
-  let plan = 8;
+  let plan = 9;
   if (override !== undefined) {
     plan += 2;
   }
-  // if (fallbackValue !== undefined) {
-  //   plan += 2;
-  // }
+  if (fallbackValue !== undefined) {
+    plan += 1;
+  }
   c.plan(plan);
   const seenOverrideArgs: Array<types.AnyEncoder | types.AnyDecoder> = [];
+  const seenFallbackArgs: Array<types.AnyEncoder | types.AnyDecoder> = [];
   const {
     stringDecoder,
     stringEncoder,
@@ -50,9 +51,10 @@ const testDecodersAndEncoders = (
       override !== undefined
         ? (arg) => (seenOverrideArgs.push(arg), override)
         : undefined,
-    fallbackValue: () => {
-      throw new Error("This shouldn't be called in this test.");
-    },
+    fallbackValue:
+      fallbackValue !== undefined
+        ? (arg) => (seenFallbackArgs.push(arg), fallbackValue)
+        : undefined,
   });
 
   const stringInput = common.stringValidator;
@@ -85,17 +87,40 @@ const testDecodersAndEncoders = (
       unknownInput,
     ]);
   }
+
+  if (fallbackValue !== undefined) {
+    const invalid = "hello" as unknown as t.ZodType;
+    c.deepEqual(stringDecoder(invalid, true), override ?? fallbackValue);
+    c.deepEqual(seenFallbackArgs, override !== undefined ? [] : ["hello"]);
+  } else {
+    c.deepEqual(seenFallbackArgs, []);
+  }
 };
 
 test(
   "Validate createJsonSchemaFunctionality transformation works without override and without fallback",
   testDecodersAndEncoders,
   undefined,
+  undefined,
 );
 test(
   "Validate createJsonSchemaFunctionality transformation works with override and without fallback",
   testDecodersAndEncoders,
   true,
+  undefined,
+);
+
+test(
+  "Validate createJsonSchemaFunctionality transformation works without override and with fallback",
+  testDecodersAndEncoders,
+  undefined,
+  true,
+);
+test(
+  "Validate createJsonSchemaFunctionality transformation works with override and with fallback",
+  testDecodersAndEncoders,
+  true,
+  false,
 );
 
 const contentType = "application/json" as const;
