@@ -21,6 +21,7 @@ export const createJsonSchemaFunctionality = <
           cutOffTopLevelUndefined,
           override,
           fallbackValue ?? common.getDefaultFallbackValue(),
+          args.z2jOptions,
         ),
       override,
     },
@@ -31,6 +32,7 @@ export const createJsonSchemaFunctionality = <
           cutOffTopLevelUndefined,
           override,
           fallbackValue ?? common.getDefaultFallbackValue(),
+          args.z2jOptions,
         ),
       override,
     },
@@ -43,6 +45,7 @@ export const createJsonSchemaFunctionality = <
             cutOffTopLevelUndefined,
             override,
             fallbackValue ?? common.getDefaultFallbackValue(),
+            args.z2jOptions,
           ),
         override,
       }),
@@ -56,6 +59,7 @@ export const createJsonSchemaFunctionality = <
             cutOffTopLevelUndefined,
             override,
             fallbackValue ?? common.getDefaultFallbackValue(),
+            args.z2jOptions,
           ),
         override,
       }),
@@ -72,4 +76,5 @@ export type Input<
   types.AnyEncoder | types.AnyDecoder
 > & {
   override?: common.OverrideGeneric<types.AnyEncoder | types.AnyDecoder>;
+  z2jOptions?: convert.Z2JOptions;
 };

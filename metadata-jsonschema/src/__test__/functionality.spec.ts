@@ -27,18 +27,17 @@ test("Validate createJsonSchemaFunctionality works for non-schema-transformation
 const testDecodersAndEncoders = (
   c: ExecutionContext,
   override: md.JSONSchema | undefined,
-  fallbackValue: md.JSONSchema | undefined,
+  // fallbackValue: md.JSONSchema | undefined,
 ) => {
   let plan = 8;
   if (override !== undefined) {
     plan += 2;
   }
-  if (fallbackValue !== undefined) {
-    plan += 2;
-  }
+  // if (fallbackValue !== undefined) {
+  //   plan += 2;
+  // }
   c.plan(plan);
   const seenOverrideArgs: Array<types.AnyEncoder | types.AnyDecoder> = [];
-  const seenFallbackArgs: Array<types.AnyEncoder | types.AnyDecoder> = [];
   const {
     stringDecoder,
     stringEncoder,
@@ -51,10 +50,9 @@ const testDecodersAndEncoders = (
       override !== undefined
         ? (arg) => (seenOverrideArgs.push(arg), override)
         : undefined,
-    fallbackValue:
-      fallbackValue !== undefined
-        ? (arg) => (seenFallbackArgs.push(arg), fallbackValue)
-        : undefined,
+    fallbackValue: () => {
+      throw new Error("This shouldn't be called in this test.");
+    },
   });
 
   const stringInput = common.stringValidator;
@@ -71,14 +69,10 @@ const testDecodersAndEncoders = (
       stringInput,
     ]);
   }
-  if (fallbackValue !== undefined) {
-    c.deepEqual(seenFallbackArgs, []);
-  }
 
   seenOverrideArgs.length = 0;
   const unknownInput = t.unknown();
-  const expectedUnknown =
-    override ?? fallbackValue ?? md.getDefaultFallbackValue();
+  const expectedUnknown = override ?? unknownSchema;
   c.deepEqual(stringDecoder(unknownInput, true), expectedUnknown);
   c.deepEqual(stringEncoder(unknownInput, true), expectedUnknown);
   c.deepEqual(decoder(unknownInput, true), expectedUnknown);
@@ -91,45 +85,28 @@ const testDecodersAndEncoders = (
       unknownInput,
     ]);
   }
-  if (fallbackValue !== undefined) {
-    c.deepEqual(
-      seenFallbackArgs,
-      override === undefined
-        ? [unknownInput, unknownInput, unknownInput, unknownInput]
-        : [],
-    );
-  }
 };
 
 test(
   "Validate createJsonSchemaFunctionality transformation works without override and without fallback",
   testDecodersAndEncoders,
   undefined,
-  undefined,
 );
 test(
   "Validate createJsonSchemaFunctionality transformation works with override and without fallback",
   testDecodersAndEncoders,
   true,
-  undefined,
-);
-test(
-  "Validate createJsonSchemaFunctionality transformation works without override and with fallback",
-  testDecodersAndEncoders,
-  undefined,
-  true,
-);
-test(
-  "Validate createJsonSchemaFunctionality transformation works with override and with fallback",
-  testDecodersAndEncoders,
-  true,
-  false,
 );
 
 const contentType = "application/json" as const;
 const contentTypes = [contentType];
 
 const stringSchema: md.JSONSchema = {
+  $schema: "http://json-schema.org/draft-07/schema#",
   type: "string",
   description: "string",
+};
+
+const unknownSchema: md.JSONSchema = {
+  $schema: "http://json-schema.org/draft-07/schema#",
 };

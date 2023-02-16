@@ -1,5 +1,5 @@
 import * as t from "zod";
-
+import type * as md from "@ty-ras/metadata-jsonschema";
 export const stringValidator = t.string().describe("string");
 
 export const literal = <TLiteral extends t.Primitive>(literal: TLiteral) =>
@@ -35,3 +35,10 @@ export const object = <T extends t.ZodRawShape>(shape: T) =>
       )
       .join(", ")} }`,
   );
+
+export const removeDollarSchema = (result: md.JSONSchema) => {
+  if (result && typeof result === "object") {
+    delete result["$schema"];
+  }
+  return result;
+};
