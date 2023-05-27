@@ -48,7 +48,7 @@ export const fromDecoder = <TData>(
 };
 
 /**
- * Creates a new {@link data.DataValidator} from given {@link Encoder}, wrapping its 'native' `io-ts` API into uniform TyRAS API.
+ * Creates a new {@link data.DataValidator} from given {@link Encoder}, wrapping its 'native' `zod` API into uniform TyRAS API.
  * @param validation The {@link Encoder}.
  * @returns A {@link data.DataValidator} which behaves like given `validation`.
  */

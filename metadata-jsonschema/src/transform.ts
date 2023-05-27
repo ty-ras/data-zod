@@ -1,19 +1,30 @@
+/**
+ * @file This file contains code related to transforming `zod` validators to JSON schema objects using `zod-to-json-schema` library.
+ */
+
 import * as t from "zod";
 import * as z2j from "zod-to-json-schema";
 import * as common from "@ty-ras/metadata-jsonschema";
-import type * as types from "./types";
+import type * as types from "./md.types";
 import getUndefinedPossibility from "./check-undefined";
 
+/**
+ * This function will transform the given {@link t.ZodType} into {@link common.JSONSchema} value.
+ * @param validation The `zod` decoder or encoder.
+ * @param cutOffTopLevelUndefined When traversing validators hierarchically, set to `true` to consider top-level `X | undefined` value as just `X`.
+ * @param override The optional callback to override certain decoders or encoders.
+ * @param fallbackValue The callback to get fallback value when this transformation fails to construct the {@link common.JSONSchema} value.
+ * @param opts The {@link Z2JOptions} to use.
+ * @returns The {@link common.JSONSchema}
+ */
 export const transformToJSONSchema = (
-  validation: types.AnyEncoder | types.AnyDecoder,
+  validation: t.ZodType,
   cutOffTopLevelUndefined: boolean,
   override: types.Override | undefined,
   fallbackValue: types.FallbackValue,
   opts: Z2JOptions,
 ): common.JSONSchema => {
-  const recursion: Recursion = (
-    innerValidation: types.AnyEncoder | types.AnyDecoder,
-  ) =>
+  const recursion: Recursion = (innerValidation: t.ZodType) =>
     transformToJSONSchemaImpl(
       false,
       recursion,
@@ -35,7 +46,10 @@ export const transformToJSONSchema = (
   );
 };
 
-// The zop-to-json-schema typings are a mess...
+/**
+ * This the options type, as 2nd parameter of {@link z2j.zodToJsonSchema}.
+ * The library unfortunately does not expose them directly, so have to use like this.
+ */
 export type Z2JOptions = Parameters<typeof z2j.zodToJsonSchema>[1];
 
 const transformToJSONSchemaImpl = (
@@ -89,13 +103,11 @@ const tryTransformTopLevelSchema = (
     : undefined;
 };
 
-type Recursion = (
-  item: types.AnyEncoder | types.AnyDecoder,
-) => common.JSONSchema;
+type Recursion = (item: t.ZodType) => common.JSONSchema;
 
 const transformUsingZod2JsonSchema = (
   recursion: Recursion,
-  validation: types.AnyEncoder | types.AnyDecoder,
+  validation: t.ZodType,
   topLevel: boolean,
   opts: Z2JOptions,
 ) => {

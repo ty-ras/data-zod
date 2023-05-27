@@ -1,9 +1,13 @@
+/**
+ * @file This file contains unit tests for functionality in file `../functionality.ts`.
+ */
+
 import test, { ExecutionContext } from "ava";
 import * as md from "@ty-ras/metadata-jsonschema";
 import * as t from "zod";
 import * as common from "./common";
 import * as spec from "../functionality";
-import type * as types from "../types";
+import type * as types from "../md.types";
 
 test("Validate createJsonSchemaFunctionality works for non-schema-transformation things", (c) => {
   c.plan(5);

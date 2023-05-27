@@ -1,6 +1,9 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/**
+ * @file This file contains unit tests for functionality in file `../body.ts`.
+ */
+
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument */
+
 import test from "ava";
 import * as spec from "../body";
 import * as t from "zod";
@@ -140,4 +143,33 @@ test("Validate request body detects invalid JSON", async (c) => {
   if (result.error === "error") {
     c.true(result.errorInfo instanceof SyntaxError);
   }
+});
+
+test("Validate that content type is customizable for request and response body validations", (c) => {
+  c.plan(2);
+
+  const validator = t.string();
+
+  // Technically, if the code wouldn't work, these would not even pass TS type checking.
+  const {
+    validatorSpec: {
+      contents: { customContent },
+    },
+  } = spec.requestBody(validator, { contentType: "customContent" });
+  c.is(
+    customContent,
+    validator,
+    "The content type must've propagated when passed to the function",
+  );
+
+  const {
+    validatorSpec: {
+      contents: { customContentResponse },
+    },
+  } = spec.responseBody(validator, "customContentResponse");
+  c.is(
+    customContentResponse,
+    validator,
+    "The content type must've propagated when passed to the function",
+  );
 });

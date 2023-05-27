@@ -1,11 +1,14 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/**
+ * @file This file contains unit tests for functionality in file `../transform.ts`.
+ */
+
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument */
+
 import test, { ExecutionContext } from "ava";
 import type * as md from "@ty-ras/metadata-jsonschema";
 import * as t from "zod";
 import * as common from "./common";
 import * as spec from "../transform";
-import type * as types from "../types";
 
 test("Validate transformToJSONSchema basic usages work", (c) => {
   c.plan(8);
@@ -341,7 +344,7 @@ test("Validate that transformToJSONSchema works with invalid inputs", (c) => {
 
 const simpleTransformToJSONSchema = (
   c: ExecutionContext,
-  validation: types.AnyDecoder | types.AnyEncoder,
+  validation: t.ZodType,
   type: Exclude<md.JSONSchema, boolean>["type"] | md.JSONSchema,
   description?: string,
 ) =>
@@ -360,9 +363,7 @@ const simpleTransformToJSONSchema = (
       : type,
   );
 
-const rawTransformToJSONSchema = (
-  validation: types.AnyDecoder | types.AnyEncoder,
-) =>
+const rawTransformToJSONSchema = (validation: t.ZodType) =>
   common.removeDollarSchema(
     spec.transformToJSONSchema(
       validation,

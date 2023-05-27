@@ -1,8 +1,23 @@
+/**
+ * @file This file contains function to invoke {@link common.createJsonSchemaFunctionalityGeneric} using `zod` lib-specific functionality (and leaving the rest to be specified as parameters.).
+ */
+
 import * as common from "@ty-ras/metadata-jsonschema";
-import type * as types from "./types";
+import type * as data from "@ty-ras/data-zod";
+import * as t from "zod";
+import type * as types from "./md.types";
 import getUndefinedPossibility from "./check-undefined";
 import * as convert from "./transform";
 
+/**
+ * Creates new {@link JSONSchemaFunctionality} from given {@link Input}.
+ * This function is typically meant to be used by other TyRAS libraries, and rarely directly by client code.
+ * @param param0 The {@link Input} to this function.
+ * @param param0.contentTypes Privately deconstructed variable.
+ * @param param0.override Privately deconstructed variable.
+ * @param param0.fallbackValue Privately deconstructed variable.
+ * @returns The {@link JSONSchemaFunctionality} that can be used when creating metadata providers.
+ */
 export const createJsonSchemaFunctionality = <
   TTransformedSchema,
   TContentTypes extends string,
@@ -11,13 +26,16 @@ export const createJsonSchemaFunctionality = <
   override,
   fallbackValue,
   ...args
-}: Input<TTransformedSchema, TContentTypes>) =>
+}: Input<TTransformedSchema, TContentTypes>): JSONSchemaFunctionality<
+  TTransformedSchema,
+  TContentTypes
+> =>
   common.createJsonSchemaFunctionalityGeneric({
     ...args,
     stringDecoder: {
       transform: (decoder: types.AnyDecoder, cutOffTopLevelUndefined) =>
         convert.transformToJSONSchema(
-          decoder,
+          ensureZodType(decoder, "decoder"),
           cutOffTopLevelUndefined,
           override,
           fallbackValue ?? common.getDefaultFallbackValue(),
@@ -28,7 +46,7 @@ export const createJsonSchemaFunctionality = <
     stringEncoder: {
       transform: (encoder: types.AnyEncoder, cutOffTopLevelUndefined) =>
         convert.transformToJSONSchema(
-          encoder,
+          ensureZodType(encoder, "encoder"),
           cutOffTopLevelUndefined,
           override,
           fallbackValue ?? common.getDefaultFallbackValue(),
@@ -41,7 +59,7 @@ export const createJsonSchemaFunctionality = <
       (): common.SchemaTransformation<types.AnyEncoder> => ({
         transform: (validation, cutOffTopLevelUndefined) =>
           convert.transformToJSONSchema(
-            validation,
+            ensureZodType(validation, "encoder"),
             cutOffTopLevelUndefined,
             override,
             fallbackValue ?? common.getDefaultFallbackValue(),
@@ -55,7 +73,7 @@ export const createJsonSchemaFunctionality = <
       (): common.SchemaTransformation<types.AnyDecoder> => ({
         transform: (validation, cutOffTopLevelUndefined) =>
           convert.transformToJSONSchema(
-            validation,
+            ensureZodType(validation, "decoder"),
             cutOffTopLevelUndefined,
             override,
             fallbackValue ?? common.getDefaultFallbackValue(),
@@ -67,14 +85,48 @@ export const createJsonSchemaFunctionality = <
     getUndefinedPossibility,
   });
 
-export type Input<
+/**
+ * This interface extends {@link common.JSONSchemaFunctionalityCreationArgumentsContentTypes}, and acts as input to {@link createJsonSchemaFunctionality} function.
+ */
+export interface Input<TTransformedSchema, TContentTypes extends string>
+  extends common.JSONSchemaFunctionalityCreationArgumentsContentTypes<
+    TTransformedSchema,
+    TContentTypes,
+    types.AnyEncoder | types.AnyDecoder
+  > {
+  /**
+   * Optional callback to override certain encoders or decoders, as needed.
+   */
+  override?: common.OverrideGeneric<types.AnyEncoder | types.AnyDecoder>;
+
+  /**
+   * The options to use when calling the `zod-to-json-schema` library to convert the Zod types to JSON schema.
+   */
+  z2jOptions?: convert.Z2JOptions;
+}
+
+/**
+ * This type specializes {@link common.SupportedJSONSchemaFunctionality} with `zod` specific generic type arguments.
+ * It is used as return value of {@link createJsonSchemaFunctionality}.
+ */
+export type JSONSchemaFunctionality<
   TTransformedSchema,
   TContentTypes extends string,
-> = common.JSONSchemaFunctionalityCreationArgumentsContentTypes<
+> = common.SupportedJSONSchemaFunctionality<
   TTransformedSchema,
-  TContentTypes,
-  types.AnyEncoder | types.AnyDecoder
-> & {
-  override?: common.OverrideGeneric<types.AnyEncoder | types.AnyDecoder>;
-  z2jOptions?: convert.Z2JOptions;
-};
+  types.AnyDecoder,
+  types.AnyEncoder,
+  Record<TContentTypes, common.SchemaTransformation<types.AnyEncoder>>,
+  Record<TContentTypes, common.SchemaTransformation<types.AnyDecoder>>
+>;
+
+const ensureZodType = (
+  validation: types.AnyDecoder | types.AnyEncoder,
+  propName: keyof data.ProtocolValidation<never, never>,
+): t.ZodType =>
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+  validation instanceof t.ZodType
+    ? validation
+    : typeof validation === "object" && propName in validation
+    ? validation[propName]
+    : (validation as unknown as t.ZodType); // Something completely else was given to this callback -> just let it pass thru then and pretend it's t.ZodType
