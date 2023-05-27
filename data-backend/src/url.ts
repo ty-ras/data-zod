@@ -1,5 +1,5 @@
 /**
- * @file This file contains functionality to create generic TyRAS validators for URL and query parameters from 'native' `io-ts` decoders.
+ * @file This file contains functionality to create generic TyRAS validators for URL and query parameters from 'native' `zod` decoders.
  */
 
 import * as dataBE from "@ty-ras/data-backend";
