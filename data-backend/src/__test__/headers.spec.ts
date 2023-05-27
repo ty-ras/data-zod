@@ -1,5 +1,9 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/**
+ * @file This file contains unit tests for functionality in file `../headers.ts`.
+ */
+
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument */
+
 import test from "ava";
 import * as spec from "../headers";
 import * as t from "zod";
@@ -7,7 +11,7 @@ import * as t from "zod";
 test("Validate headers works", (c) => {
   c.plan(5);
   const headerParamValue = t.string();
-  const { validators, metadata } = spec.headers({
+  const { validators, metadata } = spec.requestHeaders({
     headerParam: headerParamValue,
   });
   c.deepEqual(metadata, {
@@ -56,7 +60,7 @@ test("Validate string decoding optionality detection", (c) => {
   c.plan(3);
   const headerType = t.string();
   const optionalHeaderType = t.union([headerType, t.undefined()]);
-  const { validators, metadata } = spec.headers({
+  const { validators, metadata } = spec.requestHeaders({
     requiredHeader: headerType,
     optionalHeader: optionalHeaderType,
   });

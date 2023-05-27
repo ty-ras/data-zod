@@ -1,6 +1,9 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
+/**
+ * @file This file contains unit tests for functionality in file `../body.ts`.
+ */
+
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument */
+
 import test from "ava";
 import * as spec from "../body";
 import * as t from "zod";
