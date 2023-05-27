@@ -144,3 +144,32 @@ test("Validate request body detects invalid JSON", async (c) => {
     c.true(result.errorInfo instanceof SyntaxError);
   }
 });
+
+test("Validate that content type is customizable for request and response body validations", (c) => {
+  c.plan(2);
+
+  const validator = t.string();
+
+  // Technically, if the code wouldn't work, these would not even pass TS type checking.
+  const {
+    validatorSpec: {
+      contents: { customContent },
+    },
+  } = spec.requestBody(validator, { contentType: "customContent" });
+  c.is(
+    customContent,
+    validator,
+    "The content type must've propagated when passed to the function",
+  );
+
+  const {
+    validatorSpec: {
+      contents: { customContentResponse },
+    },
+  } = spec.responseBody(validator, "customContentResponse");
+  c.is(
+    customContentResponse,
+    validator,
+    "The content type must've propagated when passed to the function",
+  );
+});
