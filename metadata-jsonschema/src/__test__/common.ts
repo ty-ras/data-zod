@@ -1,6 +1,12 @@
+/**
+ * @file This file contains functionality common for unit tests.
+ */
+
 import * as t from "zod";
 import type * as md from "@ty-ras/metadata-jsonschema";
 export const stringValidator = t.string().describe("string");
+
+/* eslint-disable jsdoc/require-jsdoc */
 
 export const literal = <TLiteral extends t.Primitive>(literal: TLiteral) =>
   t
