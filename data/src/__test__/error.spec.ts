@@ -1,3 +1,7 @@
+/**
+ * @file This file contains unit tests for functionality in file `../error.ts`.
+ */
+
 /* eslint-disable sonarjs/no-duplicate-string */
 import test from "ava";
 import * as spec from "../error";

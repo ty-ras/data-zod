@@ -1,3 +1,7 @@
+/**
+ * @file This file contains utility function to wrap 'native' `zod` {@link t.SafeParseReturnType} into TyRAS {@link data.DataValidatorResult}.
+ */
+
 import type * as data from "@ty-ras/data";
 import * as t from "zod";
 import * as error from "./error";
