@@ -13,7 +13,7 @@
     "sourceMap": false,
     "strict": true,
     // The zod's errorMap property is easier to use with exactOptionalPropertyTypes turned off.
-    "exactOptionalPropertyTypes": true,
+    "exactOptionalPropertyTypes": false,
     // We export whole src folder, so no need to include declaration files to dist folder.
     "declaration": false,
     "noErrorTruncation": true,
