@@ -4,8 +4,6 @@
 
 import * as data from "@ty-ras/data-backend";
 import * as common from "@ty-ras/data-zod";
-import * as rawbody from "raw-body";
-import type * as protocol from "./protocol.types";
 
 /**
  * This is the default MIME type used to serialize/deserialize response/request bodies.
@@ -16,70 +14,67 @@ export const CONTENT_TYPE = "application/json" as const;
 /**
  * Creates a new generic TyRAS {@link data.DataValidatorRequestInputSpec} for validating request body, wrapping native `zod` {@link common.Decoder}, without additional options.
  * @param validation The {@link common.Decoder} responsible for validating the deserialized and and JSON-parsed request body.
+ * @param readBody The options for reading request body.
  * @returns The {@link data.DataValidatorRequestInputSpec} that can be passed to TyRAS functions as request body validator.
  */
 export function requestBody<T>(
   validation: common.Decoder<T>,
+  readBody: data.ReadBody,
 ): data.DataValidatorRequestInputSpec<
   T,
-  protocol.InputValidatorSpec<T, typeof CONTENT_TYPE>
+  common.ValidatorHKT,
+  typeof CONTENT_TYPE
 >;
 
 /**
  * Creates a new generic TyRAS {@link data.DataValidatorRequestInputSpec} for validating request body, wrapping native `zod` {@link common.Decoder}, with additional options.
  * @param validation The {@link common.Decoder} responsible for validating the deserialized and and JSON-parsed request body.
+ * @param readBody The options for reading request body.
  * @param opts The {@link RequestBodyCreationOptions}, without custom content type specifier.
  * @returns The {@link data.DataValidatorRequestInputSpec} that can be passed to TyRAS functions as request body validator.
  */
 export function requestBody<T>(
   validation: common.Decoder<T>,
+  readBody: data.ReadBody,
   opts: RequestBodyCreationOptions & { contentType?: never },
 ): data.DataValidatorRequestInputSpec<
   T,
-  protocol.InputValidatorSpec<T, typeof CONTENT_TYPE>
+  common.ValidatorHKT,
+  typeof CONTENT_TYPE
 >;
 
 /**
  * Creates a new generic TyRAS {@link data.DataValidatorRequestInputSpec} for validating request body, wrapping native `zod` {@link common.Decoder}, with additional options, including content type.
  * @param validation The {@link common.Decoder} responsible for validating the deserialized and and JSON-parsed request body.
+ * @param readBody The options for reading request body.
  * @param opts The {@link RequestBodyCreationOptions}, along with custom content type specifier.
  * @returns The {@link data.DataValidatorRequestInputSpec} that can be passed to TyRAS functions as request body validator.
  */
 export function requestBody<T, TContentType extends string>(
   validation: common.Decoder<T>,
+  readBody: data.ReadBody,
   opts: RequestBodyCreationOptions & { contentType: TContentType },
-): data.DataValidatorRequestInputSpec<
-  T,
-  protocol.InputValidatorSpec<T, TContentType>
->;
+): data.DataValidatorRequestInputSpec<T, common.ValidatorHKT, TContentType>;
 
 /**
  * Creates a new generic TyRAS {@link data.DataValidatorRequestInputSpec} for validating request body, wrapping native `zod` {@link common.Decoder}, with additional options, possibly including content type.
  * @param validation The {@link common.Decoder} responsible for validating the deserialized and and JSON-parsed request body.
+ * @param readBody The options for reading request body.
  * @param opts The {@link RequestBodyCreationOptions}, possibly with custom content type specifier.
  * @returns The {@link data.DataValidatorRequestInputSpec} that can be passed to TyRAS functions as request body validator.
  */
 export function requestBody<T, TContentType extends string>(
   validation: common.Decoder<T>,
+  readBody: data.ReadBody,
   opts?: RequestBodyCreationOptions & { contentType?: TContentType },
-): data.DataValidatorRequestInputSpec<
-  T,
-  protocol.InputValidatorSpec<T, TContentType>
-> {
+): data.DataValidatorRequestInputSpec<T, common.ValidatorHKT, TContentType> {
   return data.requestBodyGeneric(
     validation,
-    common.fromDecoder(validation),
     opts?.contentType ?? CONTENT_TYPE,
     opts?.strictContentType === true,
-    async (readable, encoding) => {
-      const bufferOrString = await rawbody.default(readable, {
-        encoding: opts?.opts?.encoding ?? encoding,
-        ...(opts?.opts ?? {}),
-      });
-      return bufferOrString instanceof Buffer
-        ? bufferOrString.toString()
-        : bufferOrString;
-    },
+    readBody,
+    common.fromDecoder(validation),
+    opts?.allowProtoProperty === true,
   );
 }
 
@@ -92,7 +87,9 @@ export function responseBody<TOutput, TSerialized>(
   validation: common.Encoder<TOutput, TSerialized>,
 ): data.DataValidatorResponseOutputSpec<
   TOutput,
-  protocol.OutputValidatorSpec<TOutput, TSerialized, typeof CONTENT_TYPE>
+  TSerialized,
+  common.ValidatorHKT,
+  typeof CONTENT_TYPE
 >;
 
 /**
@@ -106,7 +103,9 @@ export function responseBody<TOutput, TSerialized, TContentType extends string>(
   contentType: TContentType,
 ): data.DataValidatorResponseOutputSpec<
   TOutput,
-  protocol.OutputValidatorSpec<TOutput, TSerialized, TContentType>
+  TSerialized,
+  common.ValidatorHKT,
+  TContentType
 >;
 
 /**
@@ -120,12 +119,14 @@ export function responseBody<TOutput, TSerialized, TContentType extends string>(
   contentType?: TContentType,
 ): data.DataValidatorResponseOutputSpec<
   TOutput,
-  protocol.OutputValidatorSpec<TOutput, TSerialized, TContentType>
+  TSerialized,
+  common.ValidatorHKT,
+  TContentType
 > {
   return data.responseBodyGeneric(
     validation,
-    common.fromEncoder(validation),
     contentType ?? CONTENT_TYPE,
+    common.fromEncoder(validation),
   );
 }
 
@@ -139,7 +140,7 @@ export interface RequestBodyCreationOptions {
   strictContentType?: boolean;
 
   /**
-   * The option {@link rawbody.Options} to use when deserializing the request body.
+   * If set to `true`, will NOT strip the `__proto__` properties when parsing JSON from request body.
    */
-  opts?: rawbody.Options;
+  allowProtoProperty?: boolean;
 }
