@@ -70,6 +70,22 @@ test("Verify that giving wrong input to state validator factory throws an error"
   });
 });
 
+test("Verify that optional authenticated property validation behaves as expected", (c) => {
+  c.plan(1);
+
+  const stateValidatorFactory = createStateValidatorFactory(
+    { userId: t.string() },
+    {},
+  );
+
+  const optional = stateValidatorFactory({ userId: false });
+  c.deepEqual(optional.validator({}), {
+    // Important that this it NOT protocol-error
+    error: "none",
+    data: {},
+  });
+});
+
 const createStateValidatorFactory = <
   TAuthenticated extends Record<string, data.AnyDecoder>,
   TOther extends Record<string, data.AnyDecoder>,
