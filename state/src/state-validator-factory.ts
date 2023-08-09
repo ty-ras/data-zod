@@ -31,7 +31,10 @@ export const createStateValidatorFactory = <
         ...Object.fromEntries(
           optional.map(
             (optionalProp) =>
-              [optionalProp, validation[optionalProp].validation] as const,
+              [
+                optionalProp,
+                validation[optionalProp].validation.optional(),
+              ] as const,
           ),
         ),
       });
