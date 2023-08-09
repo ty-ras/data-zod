@@ -6,13 +6,15 @@
 
 import test from "ava";
 import * as spec from "../body";
+import type * as data from "@ty-ras/data-backend";
+import type * as common from "@ty-ras/data-zod";
 import * as t from "zod";
 import * as stream from "stream";
 
 test("Validate requestBody works", async (c) => {
   c.plan(5);
   const input = t.string();
-  const { validator, validatorSpec } = spec.requestBody(input);
+  const { validator, validatorSpec } = requestBody(input);
   c.deepEqual(validatorSpec, {
     contents: {
       [spec.CONTENT_TYPE]: input,
@@ -85,7 +87,7 @@ test("Validate responseBody works", (c) => {
 
 test("Validate request body optionality works", async (c) => {
   c.plan(4);
-  const { validator: forbidRequestBody } = spec.requestBody(t.undefined());
+  const { validator: forbidRequestBody } = requestBody(t.undefined());
   c.deepEqual(
     await forbidRequestBody({
       contentType: spec.CONTENT_TYPE,
@@ -105,7 +107,7 @@ test("Validate request body optionality works", async (c) => {
       error: "error",
     },
   );
-  const { validator: optionalRequestBody } = spec.requestBody(
+  const { validator: optionalRequestBody } = requestBody(
     t.union([t.undefined(), t.string()]),
   );
   c.deepEqual(
@@ -132,7 +134,7 @@ test("Validate request body optionality works", async (c) => {
 
 test("Validate request body detects invalid JSON", async (c) => {
   c.plan(2);
-  const { validator } = spec.requestBody(t.string());
+  const { validator } = requestBody(t.string());
   const result = await validator({
     contentType: spec.CONTENT_TYPE,
     input: stream.Readable.from(["not-a-json"]),
@@ -155,7 +157,7 @@ test("Validate that content type is customizable for request and response body v
     validatorSpec: {
       contents: { customContent },
     },
-  } = spec.requestBody(validator, { contentType: "customContent" });
+  } = spec.requestBody(validator, {}, { contentType: "customContent" });
   c.is(
     customContent,
     validator,
@@ -173,3 +175,8 @@ test("Validate that content type is customizable for request and response body v
     "The content type must've propagated when passed to the function",
   );
 });
+
+const requestBody = <T>(
+  validation: common.Decoder<T>,
+  readBody: data.ReadBody = {},
+) => spec.requestBody(validation, readBody);

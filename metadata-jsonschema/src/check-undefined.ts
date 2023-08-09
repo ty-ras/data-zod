@@ -4,7 +4,7 @@
 
 import * as common from "@ty-ras/metadata-jsonschema";
 import * as t from "zod";
-import type * as types from "./md.types";
+import type * as data from "@ty-ras/data-zod";
 
 /**
  * Given either {@link t.ZodType} or protocol validation object, checks whether `undefined` is a valid value.
@@ -14,7 +14,7 @@ import type * as types from "./md.types";
  * @returns The {@link common.UndefinedPossibility} for given `validation`.
  */
 const getUndefinedPossibility: common.GetUndefinedPossibility<
-  types.AnyEncoder | types.AnyDecoder
+  data.AnyEncoder | data.AnyDecoder
 > = (validation) => {
   let retVal: boolean | undefined = validation instanceof t.ZodUndefined;
   if (!retVal) {
@@ -23,9 +23,7 @@ const getUndefinedPossibility: common.GetUndefinedPossibility<
         (validation as t.ZodEffects<t.ZodType>).innerType(),
       );
     } else {
-      const zodType =
-        validation instanceof t.ZodType ? validation : validation.decoder;
-      retVal = zodType.safeParse(undefined).success ? undefined : false;
+      retVal = validation.safeParse(undefined).success ? undefined : false;
     }
   }
   return retVal;

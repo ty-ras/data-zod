@@ -398,10 +398,24 @@
   dependencies:
     "@ty-ras/protocol" "^2.0.0"
 
+"@ty-ras/endpoint@^2.0.0":
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/@ty-ras/endpoint/-/endpoint-2.0.0.tgz#f6bfc9d0c126f2d1e9b063c7e6ebad385411f214"
+  integrity sha512-eZBDWW15HoTQ/jWR9s7/uCTwU77rC3JF/fGvEaPCCMZDE4ODaxaDt25uFYWsi/aOm72xe5YnsS6pFNtjpElchA==
+  dependencies:
+    "@ty-ras/data-backend" "^2.0.0"
+
 "@ty-ras/protocol@^2.0.0":
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/@ty-ras/protocol/-/protocol-2.0.0.tgz#2cba0ceb6f891228bed881eadb3e17812152c632"
   integrity sha512-4ZGXghpSu8pdNz8oG8t36QAcYOugZ7FcfzsnGUIdK4VXIAwm5dW8d3y2JNv8w4hpa/QT6/oFUngK1H+ARrBc/Q==
+
+"@ty-ras/state@^2.0.0":
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/@ty-ras/state/-/state-2.0.0.tgz#e73c6dfa54001358c93670e9f2a2e14752a77e50"
+  integrity sha512-1FQKdd4Emgrg1jmluvMXtMiGxJ632EjoQjMMPJpxzwiUy+8sGTBEEYnsy9wSYLy9BMdStUodg/yKyq7vuIBcOQ==
+  dependencies:
+    "@ty-ras/endpoint" "^2.0.0"
 
 "@types/istanbul-lib-coverage@^2.0.1":
   version "2.0.4"
@@ -2481,16 +2495,6 @@ quote-unquote@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/quote-unquote/-/quote-unquote-1.0.0.tgz#67a9a77148effeaf81a4d428404a710baaac8a0b"
   integrity sha512-twwRO/ilhlG/FIgYeKGFqyHhoEhqgnKVkcmqMKi2r524gz3ZbDTcyFt38E9xjJI2vT+KbRNHVbnJ/e0I25Azwg==
-
-raw-body@2.5.1:
-  version "2.5.1"
-  resolved "https://registry.yarnpkg.com/raw-body/-/raw-body-2.5.1.tgz#fe1b1628b181b700215e5fd42389f98b71392857"
-  integrity sha512-qqJBtEyVgS0ZmPGdCFPWJ3FreoqvG4MVQln/kCgF7Olq95IbOp0/BWyMwbdtn4VTvkM8Y7khCQ2Xgk/tcrCXig==
-  dependencies:
-    bytes "3.1.2"
-    http-errors "2.0.0"
-    iconv-lite "0.4.24"
-    unpipe "1.0.0"
 
 raw-body@^2.5.2:
   version "2.5.2"

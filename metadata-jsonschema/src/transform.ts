@@ -7,6 +7,7 @@ import * as z2j from "zod-to-json-schema";
 import * as common from "@ty-ras/metadata-jsonschema";
 import type * as types from "./md.types";
 import getUndefinedPossibility from "./check-undefined";
+import type * as data from "@ty-ras/data-zod";
 
 /**
  * This function will transform the given {@link t.ZodType} into {@link common.JSONSchema} value.
@@ -18,7 +19,7 @@ import getUndefinedPossibility from "./check-undefined";
  * @returns The {@link common.JSONSchema}
  */
 export const transformToJSONSchema = (
-  validation: t.ZodType,
+  validation: data.AnyDecoder | data.AnyEncoder,
   cutOffTopLevelUndefined: boolean,
   override: types.Override | undefined,
   fallbackValue: types.FallbackValue,
