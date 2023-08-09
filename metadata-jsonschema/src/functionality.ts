@@ -107,7 +107,9 @@ export interface Input<
   /**
    * Optional callback to override certain encoders or decoders, as needed.
    */
-  override?: common.OverrideGeneric<data.AnyEncoder | data.AnyDecoder>;
+  override?:
+    | common.OverrideGeneric<data.AnyEncoder | data.AnyDecoder>
+    | undefined;
 
   /**
    * The options to use when calling the `zod-to-json-schema` library to convert the Zod types to JSON schema.
