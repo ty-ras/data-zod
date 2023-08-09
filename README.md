@@ -10,6 +10,7 @@ This all is done in such way that it does not make development tedious or boring
 This particular repository contains related libraries related to using TyRAS with [`Zod`](https://github.com/colinhacks/zod) data validation library:
 - [data](./data) folder contains `Zod`-specific library `@ty-ras/data-zod` commonly used by both frontend and backend,
 - [data-backend](./data-backend) folder contains `Zod`-specific library `@ty-ras/data-backend-zod` used by backend,
+- [state](./state) folder contains `io-ts`-specific library `@ty-ras/state-zod` used by backend 
 - [data-frontend](./data-frontend) folder contains `Zod`-specific library `@ty-ras/data-frontend-zod` used by frontend, and
 - [metadata-jsonchema](./metadata-jsonschema) folder contains `Zod`-specific library `@ty-ras/metadata-jsonschema-zod` used to transform `Zod` validators into [JSON schema](https://json-schema.org/) objects.
   It is typically used by backend, but it is not restricted to that.
